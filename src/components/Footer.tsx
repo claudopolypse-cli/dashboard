@@ -3,7 +3,7 @@ export default function Footer() {
     { label: "Features", href: "#features" },
     { label: "Docs", href: "/docs" },
     { label: "Community", href: "#community" },
-    { label: "X / Twitter", href: "#" },
+    { label: "X / Twitter", href: "https://x.com/claudepolypse" },
     { label: "Discord", href: "#" },
   ];
 
