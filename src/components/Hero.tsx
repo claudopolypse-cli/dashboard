@@ -1,6 +1,34 @@
 "use client";
 
+import { useState } from "react";
 import Reveal from "./Reveal";
+
+const CA = "BMpMUSD6jLzRxuGq47SAhFvu8btdKMcREZDAWF3sBAGS";
+
+function CABadge() {
+  const [copied, setCopied] = useState(false);
+
+  const copy = () => {
+    navigator.clipboard.writeText(CA);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={copy}
+      className="mt-7 inline-flex items-center gap-3 px-4 py-2.5 rounded-lg bg-[rgba(232,114,42,0.05)] border border-[rgba(232,114,42,0.15)] hover:border-[rgba(232,114,42,0.35)] hover:bg-[rgba(232,114,42,0.08)] transition-all group cursor-pointer"
+    >
+      <span className="font-mono text-[0.58rem] text-[var(--text3)] tracking-[1.5px] uppercase shrink-0">CA</span>
+      <span className="font-mono text-[0.72rem] text-[var(--text2)] tracking-wide truncate max-w-[260px] sm:max-w-none">
+        {CA}
+      </span>
+      <span className={`font-mono text-[0.6rem] tracking-wider shrink-0 transition-colors ${copied ? "text-[#22c55e]" : "text-[var(--text3)] group-hover:text-[var(--accent)]"}`}>
+        {copied ? "COPIED ✓" : "COPY"}
+      </span>
+    </button>
+  );
+}
 
 const ArrowIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -131,6 +159,9 @@ export default function Hero() {
                 </a>
               </div>
             </Reveal>
+
+            <Reveal delay={0.45}>
+              <CABadge /></Reveal>
           </div>
 
           {/* Right — Terminal */}
