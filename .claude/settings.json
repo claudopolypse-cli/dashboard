@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Read(//Users/rega/.git/**)",
+      "Read(//Users/rega/Projects/**)",
+      "Bash(git add:*)"
+    ]
+  }
+}
