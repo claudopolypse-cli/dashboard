@@ -5,11 +5,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://claudopolypse.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  icons: {
-    icon: "/logo.jpeg",
-    apple: "/logo.jpeg",
-  },
-  title: "Claudopolypse App — Trade Solana at Terminal Speed",
+title: "Claudopolypse App — Trade Solana at Terminal Speed",
   description:
     "The fastest Solana trading terminal. Ultra-fast execution, low-fee trading, pro-grade interface. Built for serious traders.",
   keywords: [
