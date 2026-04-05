@@ -2,7 +2,7 @@
 
 > Trade Solana at terminal speed.
 
-Premium cyberpunk landing page for the Claudopolypse trading terminal on Solana.  
+Claudopolypse Dashboard — trading terminal on Solana.  
 Built with **Next.js 15**, **TypeScript**, and **Tailwind CSS 4**.
 
 ---
