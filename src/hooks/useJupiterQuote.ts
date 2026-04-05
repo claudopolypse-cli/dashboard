@@ -20,7 +20,7 @@ export interface JupiterQuote {
   routePlan: unknown[];
 }
 
-const DECIMALS: Record<string, number> = {
+export const DECIMALS: Record<string, number> = {
   SOL: 9, USDC: 6, JUP: 6, RAY: 6, BONK: 5, WIF: 6, PYTH: 6, RNDR: 8,
 };
 

@@ -1,6 +1,8 @@
 "use client";
 
 import { useMarketData, CoinMarket } from "@/hooks/useMarketData";
+import { useWalletBalances } from "@/hooks/useWalletBalances";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { Position } from "@/hooks/usePortfolio";
 import { PriceMap, PAIRS } from "@/hooks/usePrices";
 
@@ -73,12 +75,21 @@ function CoinRow({ coin, rank }: { coin: CoinMarket; rank: number }) {
 
 export default function AnalyticsPanel({ positions, prices }: Props) {
   const { coins, loading, lastUpdated, error } = useMarketData();
+  const { balances, solBalance, loading: balLoading, lastUpdated: balUpdated, refetch } = useWalletBalances();
+  const { connected, publicKey } = useWallet();
 
   // Portfolio stats from open positions
   const totalPnl = positions.reduce((sum, p) => sum + calcPnl(p, prices), 0);
   const totalSize = positions.reduce((sum, p) => sum + p.size, 0);
   const winPositions = positions.filter((p) => calcPnl(p, prices) > 0).length;
   const winRate = positions.length > 0 ? ((winPositions / positions.length) * 100).toFixed(0) : "—";
+
+  // Real wallet total USD value
+  const walletUsdValue = balances.reduce((sum, b) => {
+    const pair = PAIRS.find((p) => p.base === b.symbol);
+    const price = pair ? prices[pair.id]?.usd ?? 0 : 0;
+    return sum + b.balance * price;
+  }, 0) + (solBalance ?? 0) * (prices["solana"]?.usd ?? 0);
 
   // Tracked pairs performance
   const pairStats = PAIRS.map((p) => {
@@ -138,6 +149,118 @@ export default function AnalyticsPanel({ positions, prices }: Props) {
               sub="USDC notional"
             />
           </div>
+        </div>
+
+        {/* Real Wallet Balances */}
+        <div className="px-5 py-4 border-b border-[#2a2018]">
+          <div className="flex items-center justify-between mb-3">
+            <div className="font-mono text-[0.55rem] text-[#6b5c50] tracking-[2px] uppercase">
+              Real Wallet Balances
+            </div>
+            <div className="flex items-center gap-2">
+              {connected && balUpdated > 0 && (
+                <span className="font-mono text-[0.52rem] text-[#6b5c50]">
+                  Updated {new Date(balUpdated).toLocaleTimeString()}
+                </span>
+              )}
+              {connected && (
+                <button
+                  onClick={refetch}
+                  className="font-mono text-[0.55rem] text-[#f0923a] border border-[rgba(232,114,42,0.3)] hover:border-[#f0923a] rounded px-2 py-0.5 transition-colors cursor-pointer"
+                >
+                  Refresh
+                </button>
+              )}
+            </div>
+          </div>
+
+          {!connected ? (
+            <div className="border border-dashed border-[#2a2018] rounded p-4 text-center">
+              <div className="font-mono text-[0.62rem] text-[#6b5c50]">Connect wallet to see real balances</div>
+              <div className="font-mono text-[0.55rem] text-[#2a2018] mt-1">Reads directly from Solana mainnet via RPC</div>
+            </div>
+          ) : balLoading ? (
+            <div className="flex flex-col gap-1.5">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-10 bg-[#0e0c0a] border border-[#2a2018] rounded animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* Total value */}
+              {walletUsdValue > 0 && (
+                <div className="mb-3 border border-[rgba(232,114,42,0.2)] rounded px-4 py-2.5 bg-[rgba(232,114,42,0.03)] flex items-center justify-between">
+                  <div>
+                    <div className="font-mono text-[0.55rem] text-[#6b5c50] uppercase tracking-wider">Total Wallet Value</div>
+                    <div className="font-mono text-[1rem] font-bold text-[#f0923a]">
+                      ${walletUsdValue.toLocaleString("en-US", { maximumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                  {publicKey && (
+                    <a
+                      href={`https://solscan.io/account/${publicKey.toString()}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-[0.55rem] text-[#f0923a] underline"
+                    >
+                      {publicKey.toString().slice(0, 4)}···{publicKey.toString().slice(-4)} ↗
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* SOL balance */}
+              {solBalance !== null && (
+                <div className="flex items-center justify-between px-3 py-2 border border-[#2a2018] rounded bg-[#0e0c0a] mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-[#9945ff] flex items-center justify-center">
+                      <span className="font-mono text-[0.45rem] text-white font-bold">◎</span>
+                    </div>
+                    <div>
+                      <div className="font-mono text-[0.68rem] text-[#f0e6dc] font-semibold">SOL</div>
+                      <div className="font-mono text-[0.55rem] text-[#6b5c50]">Native balance</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-mono text-[0.72rem] text-[#f0e6dc]">{solBalance.toFixed(4)} SOL</div>
+                    <div className="font-mono text-[0.58rem] text-[#a89888]">
+                      ${((prices["solana"]?.usd ?? 0) * solBalance).toLocaleString("en-US", { maximumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SPL token balances */}
+              {balances.length === 0 && solBalance === null && (
+                <div className="font-mono text-[0.62rem] text-[#6b5c50] text-center py-3">No tracked tokens in wallet</div>
+              )}
+              {balances.map((b) => {
+                const pair = PAIRS.find((p) => p.base === b.symbol);
+                const price = pair ? prices[pair.id]?.usd ?? 0 : 0;
+                const usdVal = b.balance * price;
+                return (
+                  <div key={b.mint} className="flex items-center justify-between px-3 py-2 border border-[#2a2018] rounded bg-[#0e0c0a] mb-1.5">
+                    <div>
+                      <div className="font-mono text-[0.68rem] text-[#f0e6dc] font-semibold">{b.symbol}</div>
+                      <div className="font-mono text-[0.52rem] text-[#2a2018]">
+                        {b.mint.slice(0, 6)}···{b.mint.slice(-4)}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-mono text-[0.72rem] text-[#f0e6dc]">
+                        {b.balance.toLocaleString("en-US", { maximumFractionDigits: b.symbol === "BONK" ? 0 : 4 })}
+                      </div>
+                      {price > 0 && (
+                        <div className="font-mono text-[0.58rem] text-[#a89888]">
+                          ${usdVal.toLocaleString("en-US", { maximumFractionDigits: 2 })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
         </div>
 
         {/* Tracked Pairs Performance */}
