@@ -7,6 +7,8 @@ import Watchlist from "./Watchlist";
 import OpenPositions from "./OpenPositions";
 import ActivityLog from "./ActivityLog";
 import TradePanel from "./TradePanel";
+import SniperPanel from "./SniperPanel";
+import AnalyticsPanel from "./AnalyticsPanel";
 import type { ActivityEntry } from "./OpenPositions";
 import { usePrices, PAIRS } from "@/hooks/usePrices";
 import { usePortfolio } from "@/hooks/usePortfolio";
@@ -45,15 +47,6 @@ function PortfolioView({ positions, prices, onClose, onAddActivity }: Parameters
   );
 }
 
-function ComingSoon({ label }: { label: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center h-full gap-3">
-      <div className="font-mono text-[0.6rem] text-[#6b5c50] tracking-[3px] uppercase">{label}</div>
-      <div className="font-mono text-[2rem] font-bold text-[#2a2018]">COMING SOON</div>
-      <div className="font-mono text-[0.65rem] text-[#6b5c50]">This module is under construction.</div>
-    </div>
-  );
-}
 
 export default function DashboardShell() {
   const [activeTab, setActiveTab] = useState<DashTab>("TRADE");
@@ -168,13 +161,13 @@ export default function DashboardShell() {
 
       {activeTab === "SNIPER" && (
         <div className="flex-1 min-h-0">
-          <ComingSoon label="Sniper Mode" />
+          <SniperPanel prices={prices} />
         </div>
       )}
 
       {activeTab === "ANALYTICS" && (
         <div className="flex-1 min-h-0">
-          <ComingSoon label="Analytics" />
+          <AnalyticsPanel positions={positions} prices={prices} />
         </div>
       )}
     </div>
